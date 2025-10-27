@@ -8,24 +8,36 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
+class MaintenanceController extends Controller
+{
+    private $settingsFilePath = 'app/maintenance.json';
 
-/**
- * MaintenanceController
- * Handles system maintenance, backups, and optimization
- */
-class MaintenanceController extends Controller {
-    public function index() {
-        // Get system information
-        $systemInfo = [
-            'database_size' => $this->getDatabaseSize(),
-            'storage_size' => $this->getStorageSize(),
-            'cache_size' => $this->getCacheSize(),
-            'last_backup' => $this->getLastBackupDate(),
-            'php_version' => PHP_VERSION,
-            'laravel_version' => app()->version(),
-        ];
+    public function index()
+    {
+        $settings = $this->getSettings();
+        $systemInfo = $this->getSystemInfo();
 
-        return view('maintenance.index', compact('systemInfo'));
+        return view('admin.maintenance.index', compact('settings', 'systemInfo'));
+    }
+
+    public function update(Request $request)
+    {
+        $settings = $request->validate([
+            'maintenance_mode' => 'required|boolean',
+            'allowed_ips' => 'nullable|string',
+        ]);
+
+        Storage::put($this->settingsFilePath, json_encode($settings, JSON_PRETTY_PRINT));
+
+        if ($settings['maintenance_mode']) {
+            Artisan::call('down', [
+                '--allow' => $settings['allowed_ips'] ?? null,
+            ]);
+        } else {
+            Artisan::call('up');
+        }
+
+        return redirect()->route('admin.maintenance.index')->with('success', 'Maintenance settings updated.');
     }
 
     public function backup(Request $request)
