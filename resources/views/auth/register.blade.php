@@ -30,15 +30,13 @@
                 </div>
 
                 <!-- Register Button -->
-                <x-button type="primary" class="w-full">{{ __('Create Account') }}</x-button>
+                <x-button type="primary" class="w-full bg-primary hover:bg-blue-800 text-white font-medium py-3 px-6 rounded-lg transition duration-300">{{ __('Create Account') }}</x-button>
             </form>
 
             <!-- Login Link -->
             <div class="text-center mt-6">
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Already have an account?
-                    <a href="{{ route('login') }}"
-                        class="text-blue-600 dark:text-blue-400 hover:underline font-medium">{{ __('Sign in') }}</a>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Already have an account?
+                    <a href="{{ route('login') }}" class="text-accent hover:underline font-medium">{{ __('Sign in') }}</a>
                 </p>
             </div>
         </div>

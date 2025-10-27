@@ -20,15 +20,15 @@
 
             <form method="POST" action="{{ route('verification.store') }}">
                 @csrf
-                <x-button type="primary" buttonType="submit" class="w-full">
+                <x-button type="primary" buttonType="submit" class="w-full bg-primary hover:bg-blue-800 text-white font-medium py-3 px-6 rounded-lg transition duration-300">
                     {{ __('Resend Verification Email') }}
                 </x-button>
             </form>
 
             <div class="text-center mt-6">
                 <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+ @csrf
+ <button type="submit" class="text-accent hover:underline font-medium">
                         {{ __('Log out') }}
                     </button>
                 </form>

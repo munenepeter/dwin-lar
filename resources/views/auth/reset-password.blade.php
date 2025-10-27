@@ -31,15 +31,14 @@
                 </div>
 
                 <!-- Reset Password Button -->
-                <x-button type="primary" buttonType="submit" class="w-full">
+                <x-button type="primary" buttonType="submit" class="w-full bg-primary hover:bg-blue-800 text-white font-medium py-3 px-6 rounded-lg transition duration-300">
                     {{ __('Reset Password') }}
                 </x-button>
             </form>
 
             <!-- Back to Login Link -->
             <div class="text-center mt-6">
-                <a href="{{ route('login') }}"
-                    class="text-blue-600 dark:text-blue-400 hover:underline font-medium">{{ __('Back to login') }}</a>
+                <a href="{{ route('login') }}" class="text-accent hover:underline font-medium">{{ __('Back to login') }}</a>
             </div>
         </div>
     </div>

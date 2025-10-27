@@ -22,7 +22,7 @@
                     <div class="flex items-center justify-between mt-2">
                         @if (Route::has('password.request'))
                             <a href="{{ route('password.request') }}"
-                                class="text-xs text-blue-600 dark:text-blue-400 hover:underline">{{ __('Forgot password?') }}</a>
+                                class="text-xs text-accent hover:underline">{{ __('Forgot password?') }}</a>
                         @endif
                         <x-forms.checkbox label="Remember me" name="remember" />
                     </div>
@@ -30,15 +30,15 @@
 
                 <!-- Login Button -->
                 <x-button type="primary" class="w-full">{{ __('Sign In') }}</x-button>
-            </form>
+ </form>
 
             @if (Route::has('register'))
                 <!-- Register Link -->
                 <div class="text-center mt-6">
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         {{ __('Don\'t have an account?') }}
-                        <a href="{{ route('register') }}"
-                            class="text-blue-600 dark:text-blue-400 hover:underline font-medium">{{ __('Sign up') }}</a>
+ <a href="{{ route('register') }}"
+ class="text-accent hover:underline font-medium">{{ __('Sign up') }}</a>
                     </p>
                 </div>
             @endif

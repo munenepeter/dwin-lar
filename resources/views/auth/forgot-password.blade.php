@@ -24,14 +24,14 @@
 
                 <!-- Send Reset Link Button -->
                 <x-button type="primary" buttonType="submit" class="w-full">
-                    {{ __('Send Password Reset Link') }}
+                    {{ __('Send Password Reset Link') }}</x-button>
                 </x-button>
             </form>
 
             <!-- Back to Login Link -->
             <div class="text-center mt-6">
                 <a href="{{ route('login') }}"
-                    class="text-blue-600 dark:text-blue-400 hover:underline font-medium">{{ __('Back to login') }}</a>
+                    class="text-accent dark:text-blue-400 hover:underline font-medium">{{ __('Back to login') }}</a>
             </div>
         </div>
     </div>

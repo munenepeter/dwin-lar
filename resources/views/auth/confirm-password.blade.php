@@ -18,14 +18,14 @@
                 </div>
 
                 <!-- Confirm Button -->
-                <x-button type="primary" buttonType="submit" class="w-full">
+                <x-button type="primary" buttonType="submit" class="w-full bg-primary hover:bg-blue-800 text-white font-medium py-3 px-6 rounded-lg transition duration-300">
                     {{ __('Confirm Password') }}
                 </x-button>
             </form>
 
             <!-- Forgot Password Link -->
             <div class="text-center mt-6">
-                <a href="{{ route('password.request') }}"
+                <a href="{{ route('password.request') }}" class="text-accent hover:underline font-medium">
                     class="text-blue-600 dark:text-blue-400 hover:underline font-medium">{{ __('Forgot your password?') }}</a>
             </div>
         </div>
