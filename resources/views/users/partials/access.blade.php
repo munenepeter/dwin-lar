@@ -113,7 +113,9 @@
         </form>
     </div>
 </dialog>
-
+@php
+    $rolePermissions = json_decode($rolePermissions);
+@endphp
 <script>
     const permsDialog = document.getElementById('permsDialog');
     const permsForm   = document.getElementById('permsForm');
@@ -121,7 +123,8 @@
     document.querySelectorAll('.edit-role-perms').forEach(btn => {
         btn.addEventListener('click', () => {
             const roleId = btn.dataset.roleId;
-            const role   = @json({{ $rolePermissions }})->find(r => r.id == roleId);
+            // eslint-disable-next-line
+            const role = @json($rolePermissions).find(r => r.id == roleId);
 
             document.getElementById('permsRoleId').value = role.id;
             document.getElementById('permsRoleName').textContent = 'Role: ' + role.role_name;

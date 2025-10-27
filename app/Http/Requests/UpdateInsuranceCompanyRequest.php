@@ -10,9 +10,11 @@ class UpdateInsuranceCompanyRequest extends FormRequest {
     }
 
     public function rules() {
+        $companyId = $this->route('insurance_company')?->id;
+
         return [
-            'company_name' => 'required|string|max:100|unique:insurance_companies,company_name,' . $this->insuranceCompany->id,
-            'company_code' => 'required|string|max:20|unique:insurance_companies,company_code,' . $this->insuranceCompany->id,
+            'company_name' => 'required|string|max:100|unique:insurance_companies,company_name,' . $companyId,
+            'company_code' => 'required|string|max:20|unique:insurance_companies,company_code,' . $companyId,
             'contact_person' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',

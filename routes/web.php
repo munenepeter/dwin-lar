@@ -1,15 +1,21 @@
 <?php
 
+use App\Models\AuditLog;
 use App\Http\Controllers\Settings;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\PolicyController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\UserRoleController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PolicyTypeController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PolicyRenewalController;
+use App\Http\Controllers\SystemSettingController;
 use App\Http\Controllers\ClientDocumentController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\InsuranceCompanyController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\CommissionPaymentController;
@@ -18,7 +24,6 @@ use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\CommissionStructureController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\CommissionCalculationController;
-use App\Http\Controllers\DashboardController;
 
 Route::get('/', fn() => view('welcome'))->name('home');
 Route::get('/about', fn() => view('about'))->name('about');
@@ -41,75 +46,101 @@ Route::middleware(['auth'])->group(function () {
 
 
 // Protected routes (require auth)
+// Add these routes to your existing admin routes group in web.php
+
 Route::prefix('admin')->middleware('auth')->group(function () {
+    
+    // Dashboard 
+    Route::get('dashboard', DashboardController::class)->name('admin.dashboard');
 
-    Route::get('dashboard', DashboardController::class);
+    // Analytics
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
 
-    // User Roles
+    // User Roles 
     Route::resource('user-roles', UserRoleController::class);
 
-    // Users
+    // Users 
     Route::resource('users', UserController::class);
-
-    Route::get('users', [UserController::class, 'index'])->name('users.index');
-
-    // Roles & Permissions routes
+    
+    // User Roles & Permissions routes 
     Route::get('users/roles/{id}', [UserController::class, 'getRole'])->name('users.roles.get');
     Route::post('users/roles', [UserController::class, 'storeRole'])->name('users.roles.store');
     Route::put('users/roles/{id}', [UserController::class, 'updateRole'])->name('users.roles.update');
     Route::delete('users/roles/{id}', [UserController::class, 'deleteRole'])->name('users.roles.delete');
 
-    // Access Control routes
+    // Access Control routes 
     Route::post('users/update-role-permissions', [UserController::class, 'updateRolePermissions'])->name('users.roles.update-permissions');
 
-    // Tab-specific routes for direct access
+    // Tab-specific routes for direct access 
     Route::get('users/tab/roles', [UserController::class, 'rolesTab'])->name('users.tab.roles');
     Route::get('users/tab/activity', [UserController::class, 'activityTab'])->name('users.tab.activity');
     Route::get('users/tab/access', [UserController::class, 'accessTab'])->name('users.tab.access');
 
-    // Insurance Companies
+    // Insurance Companies 
     Route::resource('insurance-companies', InsuranceCompanyController::class);
+    Route::get('insurance-companies/stats', [InsuranceCompanyController::class, 'stats'])->name('insurance-companies.stats');
 
-    // Policy Types
+    // Policy Types 
     Route::resource('policy-types', PolicyTypeController::class);
 
-    // Commission Structures
-    Route::resource('commission-structures', CommissionStructureController::class);
+    // Commission Structures 
+    Route::get('commission-structures/create', [CommissionStructureController::class, 'create'])
+         ->name('commission-structures.create');
+    Route::post('commission-structures', [CommissionStructureController::class, 'store'])
+         ->name('commission-structures.store');
+    Route::get('commission-structures/{commissionStructure}/edit', [CommissionStructureController::class, 'edit'])
+         ->name('commission-structures.edit');
+    Route::put('commission-structures/{commissionStructure}', [CommissionStructureController::class, 'update'])
+         ->name('commission-structures.update');
 
-    // Clients
+    // Clients 
     Route::resource('clients', ClientController::class);
 
-    // Client Documents (nested under clients)
+    // Client Documents (nested under clients) 
     Route::resource('clients.documents', ClientDocumentController::class)->shallow();
 
-    // Policies
+    // Policies 
     Route::resource('policies', PolicyController::class);
 
-    // Policy Renewals (nested under policies)
+    // Policy Renewals (nested under policies) 
     Route::resource('policies.renewals', PolicyRenewalController::class)->shallow();
 
-    // Commission Calculations
+    // Commission Calculations 
     Route::resource('commission-calculations', CommissionCalculationController::class);
 
-    // Commission Payments
+    // Commission Payments 
     Route::resource('commission-payments', CommissionPaymentController::class);
 
-    // Notifications
+    // Notifications 
     Route::resource('notifications', NotificationController::class);
-    Route::post('notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])
+         ->name('notifications.markAsRead');
 
-    // Performance Metrics
+    // Performance Metrics 
     Route::resource('performance-metrics', PerformanceMetricController::class);
 
-    // System Settings
-    // Route::resource('system-settings', SystemSettingController::class);
+    // System Settings 
+    Route::resource('system-settings', SystemSettingController::class);
 
-    // Custom routes for stored procedures (e.g., reports)
-    Route::get('reports/client-policy-summary/{client}', [ClientController::class, 'policySummary'])->name('clients.policySummary');
-    Route::get('reports/agent-performance/{user}', [UserController::class, 'performanceReport'])->name('users.performanceReport');
-    Route::get('reports/expiring-policies', [PolicyController::class, 'expiringReport'])->name('policies.expiringReport');
-    Route::get('reports/outstanding-commissions', [CommissionCalculationController::class, 'outstandingReport'])->name('commission-calculations.outstandingReport');
-    Route::post('policies/update-expired', [PolicyController::class, 'updateExpired'])->name('policies.updateExpired');
+    // Audit Logs 
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs');
+
+    // Maintenance 
+    Route::get('maintenance', [MaintenanceController::class, 'index'])->name('admin.maintenance');
+    Route::post('maintenance/backup', [MaintenanceController::class, 'backup'])->name('admin.maintenance.backup');
+    Route::post('maintenance/optimize', [MaintenanceController::class, 'optimize'])->name('admin.maintenance.optimize');
+
+    // Custom routes for stored procedures (e.g., reports) 
+    Route::get('reports/client-policy-summary/{client}', [ClientController::class, 'policySummary'])
+         ->name('clients.policySummary');
+    Route::get('reports/agent-performance/{user}', [UserController::class, 'performanceReport'])
+         ->name('users.performanceReport');
+    Route::get('reports/expiring-policies', [PolicyController::class, 'expiringReport'])
+         ->name('policies.expiringReport');
+    Route::get('reports/outstanding-commissions', [CommissionCalculationController::class, 'outstandingReport'])
+         ->name('commission-calculations.outstandingReport');
+    Route::post('policies/update-expired', [PolicyController::class, 'updateExpired'])
+         ->name('policies.updateExpired');
 });
 
 require __DIR__ . '/auth.php';

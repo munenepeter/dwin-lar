@@ -7,7 +7,7 @@
                     <h1 class="text-3xl font-bold tracking-tight">Policy Management</h1>
                     <p class="text-muted-foreground">Manage insurance policies, renewals, and policy types</p>
                 </div>
-                <a href="{{ route('policies.create') }}" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-red-500 hover:bg-red-600 text-white h-10 px-4 py-2">
+                <button data-modal-url="{{ route('policies.create') }}" class="open-policy-modal inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-red-500 hover:bg-red-600 text-white h-10 px-4 py-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-plus-2 mr-2 h-4 w-4">
                         <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2Z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -15,7 +15,7 @@
                         <path d="M9 15h6"></path>
                     </svg>
                     Add Policy
-                </a>
+                </button>
             </div>
 
             <!-- Stats Cards -->
@@ -134,12 +134,10 @@
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy Number</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy Details</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premium</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premium & Expiry</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -147,28 +145,34 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($policies as $policy)
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $policy->policy_number }}</td>
+                                <td class="px-6 py-4 text-sm">
+                                    <div class="font-medium text-gray-900">{{ $policy->policy_number }}</div>
+                                    <div class="text-gray-500 text-xs">{{ $policy->policyType->type_name }}</div>
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ $policy->client->first_name }} {{ $policy->client->last_name }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $policy->company->company_name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $policy->policyType->type_name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {{ number_format($policy->premium_amount, 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 {{ $policy->expiry_date < now() ? 'text-red-600 font-semibold' : '' }}">
-                                    {{ $policy->expiry_date->format('M d, Y') }}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $policy->company->company_name }}
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    <div class="font-medium text-gray-900">KES {{ number_format($policy->premium_amount, 2) }}</div>
+                                    <div class="text-xs {{ $policy->expiry_date < now() ? 'text-red-600 font-semibold' : 'text-gray-500' }}">
+                                        Exp: {{ $policy->expiry_date->format('M d, Y') }}
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    {{ $policy->policy_status === 'ACTIVE' ? 'bg-green-100 text-green-800' : '' }}
-                                    {{ $policy->policy_status === 'EXPIRED' ? 'bg-red-100 text-red-800' : '' }}
-                                    {{ $policy->policy_status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                                    {{ $policy->policy_status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' : '' }}">
+                    {{ $policy->policy_status === 'ACTIVE' ? 'bg-green-100 text-green-800' : '' }}
+                    {{ $policy->policy_status === 'EXPIRED' ? 'bg-red-100 text-red-800' : '' }}
+                    {{ $policy->policy_status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                    {{ $policy->policy_status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' : '' }}">
                                         {{ $policy->policy_status }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                    <a href="{{ route('policies.show', $policy->id) }}" class="text-blue-600 hover:text-blue-900">View</a>
-                                    <a href="{{ route('policies.edit', $policy->id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                                    <a href="{{ route('policies.show', $policy->id) }}" class="open-policy-modal text-blue-600 hover:text-blue-900">View</a>
+                                    <a href="{{ route('policies.edit', $policy->id) }}" class="open-policy-modal text-indigo-600 hover:text-indigo-900">Edit</a>
                                     <form action="{{ route('policies.destroy', $policy->id) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
@@ -187,9 +191,22 @@
         </div>
     </main>
 
+    <!-- Modal Structure -->
+    <div id="policyModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+        <div id="policyModalContent" class="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
+            <button id="closePolicyModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+            </button>
+            <!-- Content loaded here -->
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Client-side search and filter
+            // Client-side search and filter (remains as is; client-side on current page)
             const policySearchInput = document.getElementById('policySearch');
             const policyStatusFilter = document.getElementById('policyStatusFilter');
             const resetFiltersBtn = document.getElementById('resetFiltersBtn');
@@ -235,7 +252,52 @@
                     filterPolicies();
                 });
             }
+
+            // Modal JS
+            const modal = document.getElementById('policyModal');
+            const modalContent = document.getElementById('policyModalContent');
+            const closeModal = document.getElementById('closePolicyModal');
+
+            document.querySelectorAll('.open-policy-modal').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    let url = this.getAttribute('href') || this.getAttribute('data-modal-url');
+                    if (!url) {
+                        console.error('No URL found for modal link:', this);
+                        return;
+                    }
+
+                    fetch(url)
+                        .then(response => response.text())
+                        .then(html => {
+                            modalContent.innerHTML = html;
+                            modal.classList.remove('hidden');
+                            // Re-attach close listeners if needed (e.g., for close-dialog in partials)
+                            attachCloseListeners();
+                        })
+                        .catch(error => console.error('Error loading modal:', error));
+                });
+            });
+
+            closeModal.addEventListener('click', closePolicyModal);
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closePolicyModal();
+                }
+            });
+
+            function closePolicyModal() {
+                modal.classList.add('hidden');
+                modalContent.innerHTML = '';
+            }
+
+            function attachCloseListeners() {
+                document.querySelectorAll('.close-dialog').forEach(btn => {
+                    btn.addEventListener('click', closePolicyModal);
+                });
+            }
         });
     </script>
-
 </x-layouts.app>

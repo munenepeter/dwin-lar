@@ -15,12 +15,17 @@ class CommissionStructureController extends Controller {
     public function create() {
         $companies = \App\Models\InsuranceCompany::all();
         $policyTypes = \App\Models\PolicyType::all();
-        return view('commission-structures.create', compact('companies', 'policyTypes'));
+        return view('commission-structures.form', compact('companies', 'policyTypes'));
     }
 
     public function store(StoreCommissionStructureRequest $request) {
-        CommissionStructure::create($request->validated());
-        return redirect()->route('commission-structures.index')->with('success', 'Commission structure created.');
+        try {
+            CommissionStructure::updateOrCreate($request->validated());
+            return redirect()->back()->with('success', 'Commission structure created.');
+        } catch (\Exception $e) {
+            dd($e);
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     public function show(CommissionStructure $commissionStructure) {
@@ -31,7 +36,7 @@ class CommissionStructureController extends Controller {
     public function edit(CommissionStructure $commissionStructure) {
         $companies = \App\Models\InsuranceCompany::all();
         $policyTypes = \App\Models\PolicyType::all();
-        return view('commission-structures.edit', compact('commissionStructure', 'companies', 'policyTypes'));
+        return view('commission-structures.from', compact('commissionStructure', 'companies', 'policyTypes'));
     }
 
     public function update(UpdateCommissionStructureRequest $request, CommissionStructure $commissionStructure) {

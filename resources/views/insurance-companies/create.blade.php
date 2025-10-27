@@ -1,0 +1,1 @@
+@include('insurance-companies.form', ['insurance_company' => null])

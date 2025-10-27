@@ -111,7 +111,7 @@ class UserController extends Controller {
             ->when($request->filled('status'), fn($q) => $q->where('is_active', $request->status === 'active'))
             ->orderByDesc('created_at');
 
-        return ['users' => $query->paginate(10)];
+        return ['users' => $query->paginate(5)];
     }
 
     private function rolesTabData(Request $request): array {
