@@ -28,46 +28,53 @@ class MaintenanceController extends Controller {
         return view('maintenance.index', compact('systemInfo'));
     }
 
-    public function backup(Request $request) {
+    public function backup(Request $request)
+    {
         try {
-            // Run backup command
             Artisan::call('backup:run');
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Backup completed successfully'
-            ]);
+            return back()->with('success', 'Backup completed successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Backup failed: ' . $e->getMessage()
-            ], 500);
+            return back()->with('error', 'Backup failed: ' . $e->getMessage());
         }
     }
 
-    public function optimize(Request $request) {
+    public function optimize(Request $request)
+    {
         try {
-            // Clear and optimize
             Artisan::call('optimize:clear');
             Artisan::call('config:cache');
             Artisan::call('route:cache');
             Artisan::call('view:cache');
-
-            return response()->json([
-                'success' => true,
-                'message' => 'System optimized successfully'
-            ]);
+            return back()->with('success', 'System optimized successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Optimization failed: ' . $e->getMessage()
-            ], 500);
+            return back()->with('error', 'Optimization failed: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Helper Methods
-     */
+    private function getSettings()
+    {
+        if (Storage::exists($this->settingsFilePath)) {
+            return json_decode(Storage::get($this->settingsFilePath), true);
+        }
+
+        return [
+            'maintenance_mode' => false,
+            'allowed_ips' => '',
+        ];
+    }
+
+    private function getSystemInfo()
+    {
+        return [
+            'database_size' => $this->getDatabaseSize(),
+            'storage_size' => $this->getStorageSize(),
+            'cache_size' => $this->getCacheSize(),
+            'last_backup' => $this->getLastBackupDate(),
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+        ];
+    }
+
     private function getDatabaseSize() {
         try {
             $databaseName = env('DB_DATABASE');
@@ -126,7 +133,6 @@ class MaintenanceController extends Controller {
 
     private function getLastBackupDate() {
         try {
-            // Assuming backups are stored in storage/app/backups
             $backupPath = storage_path('app/backups');
 
             if (!is_dir($backupPath)) {

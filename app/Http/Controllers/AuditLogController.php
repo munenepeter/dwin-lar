@@ -14,17 +14,17 @@ use Illuminate\Support\Facades\Storage;
  */
 class AuditLogController extends Controller {
     public function index(Request $request) {
-        $query = DB::table('activity_log') // Adjust table name based on your setup
+        $query = DB::table('audit_log')
             ->orderBy('created_at', 'desc');
 
         // Filter by user
         if ($request->filled('user_id')) {
-            $query->where('causer_id', $request->user_id);
+            $query->where('user_id', $request->user_id);
         }
 
-        // Filter by action
-        if ($request->filled('action')) {
-            $query->where('description', 'like', '%' . $request->action . '%');
+        // Filter by table name
+        if ($request->filled('table_name')) {
+            $query->where('table_name', 'like', '%' . $request->action . '%');
         }
 
         // Filter by date range
@@ -40,7 +40,9 @@ class AuditLogController extends Controller {
 
         // Get filter options
         $users = DB::table('users')->select('id', 'full_name')->get();
+        $tables = DB::table('audit_log')->select('table_name')->distinct()->get();
 
-        return view('admin.audit-logs.index', compact('logs', 'users'));
+
+        return view('admin.audit-logs.index', compact('logs', 'users', 'tables'));
     }
 }
