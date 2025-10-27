@@ -5,38 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\CommissionStructure;
 use App\Http\Requests\StoreCommissionStructureRequest;
 use App\Http\Requests\UpdateCommissionStructureRequest;
+use App\Models\InsuranceCompany;
+use App\Models\PolicyType;
 
 class CommissionStructureController extends Controller {
     public function index() {
-        $commissionStructures = CommissionStructure::with(['company', 'policyType'])->paginate(15);
+        $commissionStructures = CommissionStructure::with(['insuranceCompany', 'policyType'])->paginate(15);
         return view('commission-structures.index', compact('commissionStructures'));
     }
 
     public function create() {
-        $companies = \App\Models\InsuranceCompany::all();
-        $policyTypes = \App\Models\PolicyType::all();
+        $companies = InsuranceCompany::all();
+        $policyTypes = PolicyType::all();
         return view('commission-structures.form', compact('companies', 'policyTypes'));
     }
 
     public function store(StoreCommissionStructureRequest $request) {
-        try {
-            CommissionStructure::updateOrCreate($request->validated());
-            return redirect()->back()->with('success', 'Commission structure created.');
-        } catch (\Exception $e) {
-            dd($e);
-            return redirect()->back()->with('error', $e->getMessage());
-        }
+        CommissionStructure::create($request->validated());
+        return redirect()->route('commission-structures.index')->with('success', 'Commission structure created.');
     }
 
     public function show(CommissionStructure $commissionStructure) {
-        $commissionStructure->load(['company', 'policyType', 'commissionCalculations']);
+        $commissionStructure->load(['insuranceCompany', 'policyType']);
         return view('commission-structures.show', compact('commissionStructure'));
     }
 
     public function edit(CommissionStructure $commissionStructure) {
-        $companies = \App\Models\InsuranceCompany::all();
-        $policyTypes = \App\Models\PolicyType::all();
-        return view('commission-structures.from', compact('commissionStructure', 'companies', 'policyTypes'));
+        $companies = InsuranceCompany::all();
+        $policyTypes = PolicyType::all();
+        return view('commission-structures.form', compact('commissionStructure', 'companies', 'policyTypes'));
     }
 
     public function update(UpdateCommissionStructureRequest $request, CommissionStructure $commissionStructure) {
@@ -46,6 +43,9 @@ class CommissionStructureController extends Controller {
 
     public function destroy(CommissionStructure $commissionStructure) {
         $commissionStructure->delete();
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Commission structure deleted successfully.']);
+        }
         return redirect()->route('commission-structures.index')->with('success', 'Commission structure deleted.');
     }
 }

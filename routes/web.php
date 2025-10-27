@@ -84,14 +84,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::resource('policy-types', PolicyTypeController::class);
 
     // Commission Structures 
-    Route::get('commission-structures/create', [CommissionStructureController::class, 'create'])
-         ->name('commission-structures.create');
-    Route::post('commission-structures', [CommissionStructureController::class, 'store'])
-         ->name('commission-structures.store');
-    Route::get('commission-structures/{commissionStructure}/edit', [CommissionStructureController::class, 'edit'])
-         ->name('commission-structures.edit');
-    Route::put('commission-structures/{commissionStructure}', [CommissionStructureController::class, 'update'])
-         ->name('commission-structures.update');
+    Route::resource('commission-structures', CommissionStructureController::class);
 
     // Clients 
     Route::resource('clients', ClientController::class);
@@ -130,15 +123,14 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::post('maintenance/backup', [MaintenanceController::class, 'backup'])->name('admin.maintenance.backup');
     Route::post('maintenance/optimize', [MaintenanceController::class, 'optimize'])->name('admin.maintenance.optimize');
 
+    // Reports
+    Route::get('reports/agent-performance', [\App\Http\Controllers\Reports\AgentReportController::class, 'index'])->name('reports.agent-performance');
+    Route::get('reports/financial-reports', [\App\Http\Controllers\Reports\FinancialReportController::class, 'index'])->name('reports.financial-reports');
+    Route::get('reports/expiring-policies', [\App\Http\Controllers\Reports\ExpiringPoliciesReportController::class, 'index'])->name('reports.expiring-policies');
+    
     // Custom routes for stored procedures (e.g., reports) 
     Route::get('reports/client-policy-summary/{client}', [ClientController::class, 'policySummary'])
          ->name('clients.policySummary');
-    Route::get('reports/agent-performance/{user}', [UserController::class, 'performanceReport'])
-         ->name('users.performanceReport');
-    Route::get('reports/expiring-policies', [PolicyController::class, 'expiringReport'])
-         ->name('policies.expiringReport');
-    Route::get('reports/outstanding-commissions', [CommissionCalculationController::class, 'outstandingReport'])
-         ->name('commission-calculations.outstandingReport');
     Route::post('policies/update-expired', [PolicyController::class, 'updateExpired'])
          ->name('policies.updateExpired');
 });
