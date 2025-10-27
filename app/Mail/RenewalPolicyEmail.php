@@ -2,8 +2,6 @@
 
 namespace App\Mail;
 
-use App\Models\Policy;
-use App\Models\PolicyRenewal;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -15,16 +13,12 @@ class RenewalPolicyEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public PolicyRenewal $policyRenewal;
-    public Policy $newPolicy;
-
     /**
      * Create a new message instance.
      */
-    public function __construct(PolicyRenewal $policyRenewal, Policy $newPolicy)
+    public function __construct()
     {
-        $this->policyRenewal = $policyRenewal;
-        $this->newPolicy = $newPolicy;
+        //
     }
 
     /**
@@ -33,7 +27,7 @@ class RenewalPolicyEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Policy Renewal Confirmation',
+            subject: 'Renewal Policy Email',
         );
     }
 
@@ -43,11 +37,7 @@ class RenewalPolicyEmail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.renewal_policy',
-            with: [
-                'policyRenewal' => $this->policyRenewal,
-                'newPolicy' => $this->newPolicy,
-            ],
+            view: 'view.name',
         );
     }
 
