@@ -25,7 +25,7 @@ class MaintenanceController extends Controller {
             'laravel_version' => app()->version(),
         ];
 
-        return view('admin.maintenance.index', compact('systemInfo'));
+        return view('maintenance.index', compact('systemInfo'));
     }
 
     public function backup(Request $request) {

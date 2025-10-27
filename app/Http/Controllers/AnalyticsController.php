@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -17,13 +17,12 @@ class AnalyticsController extends Controller {
         // Get analytics data
         $analytics = [
             'total_revenue' => DB::table('policies')
-                ->where('status', 'active')
+                ->where('policy_status', 'active')
                 ->sum('premium_amount'),
             'total_commissions' => DB::table('commission_calculations')
-                ->where('status', 'paid')
                 ->sum('commission_amount'),
             'active_policies' => DB::table('policies')
-                ->where('status', 'active')
+                ->where('policy_status', 'active')
                 ->count(),
             'new_clients_this_month' => DB::table('clients')
                 ->whereMonth('created_at', now()->month)
@@ -32,6 +31,6 @@ class AnalyticsController extends Controller {
             // Add more analytics as needed
         ];
 
-        return view('admin.analytics.index', compact('analytics'));
+        return view('analytics.index', compact('analytics'));
     }
 }
