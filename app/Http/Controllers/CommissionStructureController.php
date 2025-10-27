@@ -9,8 +9,9 @@ use App\Models\InsuranceCompany;
 use App\Models\PolicyType;
 
 class CommissionStructureController extends Controller {
+
     public function index() {
-        $commissionStructures = CommissionStructure::with(['insuranceCompany', 'policyType'])->paginate(15);
+        $commissionStructures = CommissionStructure::with(['company', 'policyType'])->paginate(6);
         return view('commission-structures.index', compact('commissionStructures'));
     }
 

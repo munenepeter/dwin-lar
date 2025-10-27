@@ -6,7 +6,7 @@
 
             <!-- Filter Form -->
             <div class="bg-white rounded-lg shadow p-6 mb-8">
-                <form action="{{ route('admin.audit-logs.index') }}" method="GET">
+                <form action="{{ route('admin.audit-logs') }}" method="GET">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label for="user_id" class="block text-sm font-medium text-gray-700">User</label>

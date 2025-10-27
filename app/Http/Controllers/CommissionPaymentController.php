@@ -7,13 +7,11 @@ use App\Http\Requests\StoreCommissionPaymentRequest;
 use App\Http\Requests\UpdateCommissionPaymentRequest;
 use App\Models\Policy;
 
-class CommissionPaymentController extends Controller
-{
-    public function index()
-    {
+class CommissionPaymentController extends Controller {
+    public function index() {
         $commissionPayments = CommissionPayment::with('policy')->paginate(15);
         $total_payments = CommissionPayment::count();
-        $total_paid = CommissionPayment::sum('amount');
+        $total_paid = CommissionPayment::sum('total_commission_amount');
 
         return view('commission-payments.index', compact(
             'commissionPayments',
@@ -22,35 +20,29 @@ class CommissionPaymentController extends Controller
         ));
     }
 
-    public function create()
-    {
+    public function create() {
         return view('commission-payments.create');
     }
 
-    public function store(StoreCommissionPaymentRequest $request)
-    {
+    public function store(StoreCommissionPaymentRequest $request) {
         CommissionPayment::create($request->validated());
         return redirect()->route('commission-payments.index')->with('success', 'Commission payment created.');
     }
 
-    public function show(CommissionPayment $commissionPayment)
-    {
+    public function show(CommissionPayment $commissionPayment) {
         return view('commission-payments.show', compact('commissionPayment'));
     }
 
-    public function edit(CommissionPayment $commissionPayment)
-    {
+    public function edit(CommissionPayment $commissionPayment) {
         return view('commission-payments.edit', compact('commissionPayment'));
     }
 
-    public function update(UpdateCommissionPaymentRequest $request, CommissionPayment $commissionPayment)
-    {
+    public function update(UpdateCommissionPaymentRequest $request, CommissionPayment $commissionPayment) {
         $commissionPayment->update($request->validated());
         return redirect()->route('commission-payments.index')->with('success', 'Commission payment updated.');
     }
 
-    public function destroy(CommissionPayment $commissionPayment)
-    {
+    public function destroy(CommissionPayment $commissionPayment) {
         $commissionPayment->delete();
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Commission payment deleted successfully.']);

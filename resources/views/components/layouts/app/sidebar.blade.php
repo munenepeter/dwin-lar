@@ -135,7 +135,7 @@
             </a>
 
             <!-- Commission Structures -->
-            <a href="{{ route('commission-structures.create') }}"
+            <a href="{{ route('commission-structures.index') }}"
                 class="sidebar-item flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 group {{ request()->routeIs('commission-structures.*') ? 'active' : '' }}"
                 x-tooltip="minimized ? 'Commission Structures' : ''">
                 <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 flex-shrink-0" :class="minimized ? 'mx-auto' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@
             </a>
 
             <!-- Agent Reports -->
-            <a href="{{ route('users.performanceReport', ['user' => 'all']) }}"
+            <a href="{{ route('reports.agent-performance', ['user' => 'all']) }}"
                 class="sidebar-item flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 group {{ request()->routeIs('users.performanceReport') ? 'active' : '' }}"
                 x-tooltip="minimized ? 'Agent Reports' : ''">
                 <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 flex-shrink-0" :class="minimized ? 'mx-auto' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,7 +190,7 @@
             </a>
 
             <!-- Financial Reports -->
-            <a href="{{ route('commission-calculations.outstandingReport') }}"
+            <a href="{{ route('reports.financial-reports') }}"
                 class="sidebar-item flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 group {{ request()->routeIs('commission-calculations.outstandingReport') ? 'active' : '' }}"
                 x-tooltip="minimized ? 'Financial Reports' : ''">
                 <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 flex-shrink-0" :class="minimized ? 'mx-auto' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +200,7 @@
             </a>
 
             <!-- Expiring Policies -->
-            <a href="{{ route('policies.expiringReport') }}"
+            <a href="{{ route('reports.expiring-policies') }}"
                 class="sidebar-item flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 group {{ request()->routeIs('policies.expiringReport') ? 'active' : '' }}"
                 x-tooltip="minimized ? 'Expiring Policies' : ''">
                 <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 flex-shrink-0" :class="minimized ? 'mx-auto' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">

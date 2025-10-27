@@ -14,7 +14,7 @@ class InsuranceCompanyController extends Controller {
             'commissionStructures.policyType' => function ($query) {
                 $query->select('id', 'type_name');
             },
-        ])->paginate(15);
+        ])->paginate(4);
 
         $total_companies = InsuranceCompany::count();
         $active_companies = InsuranceCompany::where('is_active', true)->count();

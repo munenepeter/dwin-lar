@@ -19,6 +19,7 @@
             </span>
             <span class="text-lg font-mono text-gray-600">{{ $policy->policy_number }}</span>
         </div>
+
     </div>
 
     <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
@@ -41,6 +42,17 @@
                     <button data-detail-tab="audit-log" class="detail-tab-button py-3 px-1 text-center border-b-2 font-semibold text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none transition-all duration-200">
                         Audit Log
                     </button>
+
+                    @if(in_array($policy->policy_status, ['ACTIVE','EXPIRED','RENEWED']))
+                    <button data-modal-url="#"
+                        class="open-policy-modal inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h5m10-5v5h-5m-9 9v-5h5m10 5v-5h-5"></path>
+                        </svg>
+                        Renew Policy
+                    </button>
+                    @endif
                 </nav>
             </div>
 
@@ -166,12 +178,9 @@
 
             <!-- Coverage Details Tab -->
             <div id="coverage-detail-tab" class="detail-tab-content hidden">
-                @php
-                $coverageDetails = json_decode($policy->coverage_details, true) ?? [];
-                @endphp
-                @if (!empty($coverageDetails))
+                @if (!empty($policy->coverage_details))
                 <div class="space-y-4">
-                    @foreach($coverageDetails as $detail)
+                    @foreach($policy->coverage_details as $detail)
                     <!-- Render coverage details -->
                     @endforeach
                 </div>
@@ -222,7 +231,7 @@
                                         Previous Values
                                     </h6>
                                     <div class="text-xs text-red-700 font-mono bg-white p-2 rounded border border-red-200 overflow-x-auto">
-                                        @php $oldValues = json_decode($logEntry->old_values, true); @endphp
+                                        @php $oldValues = $logEntry->old_values ?? []; @endphp
                                         @if (is_array($oldValues))
                                         @foreach ($oldValues as $key => $value)
                                         <div class="mb-1">
@@ -245,7 +254,7 @@
                                         New Values
                                     </h6>
                                     <div class="text-xs text-green-700 font-mono bg-white p-2 rounded border border-green-200 overflow-x-auto">
-                                        @php $newValues = json_decode($logEntry->new_values, true); @endphp
+                                        @php $newValues = $logEntry->new_values ?? []; @endphp
                                         @if (is_array($newValues))
                                         @foreach ($newValues as $key => $value)
                                         <div class="mb-1">
@@ -267,7 +276,7 @@
                                 </h6>
                                 <div class="text-xs text-slate-700 font-mono bg-white p-2 rounded border border-slate-300 overflow-x-auto">
                                     @php $values = !empty($logEntry->new_values) ? $logEntry->new_values : $logEntry->old_values; @endphp
-                                    @php $decodedValues = json_decode($values, true); @endphp
+                                    @php $decodedValues = $values ?? []; @endphp
                                     @if (is_array($decodedValues))
                                     @foreach ($decodedValues as $key => $value)
                                     <div class="mb-1">

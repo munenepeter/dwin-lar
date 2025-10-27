@@ -62,35 +62,35 @@
                                 @foreach ($commissionStructures as $structure)
                                 <tr class="border-b border-gray-300 hover:bg-gray-50">
                                     <td class="p-4 align-middle font-medium">{{ $structure->structure_name }}</td>
-                                    <td class="p-4 align-middle">{{ $structure->insuranceCompany->company_name ?? \'\'N/A\'\' }}</td>
-                                    <td class="p-4 align-middle">{{ $structure->policyType->type_name ?? \'\'N/A\'\' }}</td>
+                                    <td class="p-4 align-middle">{{ $structure->company->company_name ?? 'N/A' }}</td>
+                                    <td class="p-4 align-middle">{{ $structure->policyType->type_name ?? 'N/A' }}</td>
                                     <td class="p-4 align-middle">
                                         @php
                                         $typeLabels = [
-                                        \'FLAT_PERCENTAGE\' => \'Flat %\',
-                                        \'TIERED\' => \'Tiered\',
-                                        \'FIXED_AMOUNT\' => \'Fixed Amount\',
+                                        'FLAT_PERCENTAGE' => 'Flat %',
+                                        'TIERED' => 'Tiered',
+                                        'FIXED_AMOUNT' => 'Fixed Amount',
                                         ];
                                         @endphp
                                         {{ $typeLabels[$structure->commission_type] ?? $structure->commission_type }}
                                     </td>
                                     <td class="p-4 align-middle">
                                         @switch($structure->commission_type)
-                                        @case(\'FLAT_PERCENTAGE\')
+                                        @case('FLAT_PERCENTAGE')
                                         {{ number_format($structure->base_percentage ?? 0, 2) }}%
                                         @break
-                                        @case(\'FIXED_AMOUNT\')
+                                        @case('FIXED_AMOUNT')
                                         KES {{ number_format($structure->fixed_amount ?? 0, 2) }}
                                         @break
-                                        @case(\'TIERED\')
+                                        @case('TIERED')
                                         Tiered Rates
                                         @break
                                         @endswitch
                                     </td>
-                                    <td class="p-4 align-middle">{{ \Carbon\Carbon::parse($structure->effective_date)->format(\'Y-m-d\') }}</td>
+                                    <td class="p-4 align-middle">{{ \Carbon\Carbon::parse($structure->effective_date)->format('Y-m-d') }}</td>
                                     <td class="p-4 align-middle">
-                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold {{ $structure->is_active ? \'bg-green-100 text-green-800\' : \'bg-gray-100 text-gray-800\' }}">
-                                            {{ $structure->is_active ? \'Active\' : \'Inactive\' }}
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold {{ $structure->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                            {{ $structure->is_active ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>
                                     <td class="p-4 align-middle">

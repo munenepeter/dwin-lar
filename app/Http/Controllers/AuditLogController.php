@@ -36,7 +36,7 @@ class AuditLogController extends Controller {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $logs = $query->paginate(50);
+        $logs = $query->paginate(3);
 
         // Get filter options
         $users = DB::table('users')->select('id', 'full_name')->get();

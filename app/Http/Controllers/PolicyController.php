@@ -69,8 +69,8 @@ class PolicyController extends Controller {
         $policy = Policy::with(['client', 'company', 'policyType', 'agent'])->findOrFail($id);
 
         // Fetch audit logs (assuming AuditLog model exists with polymorphic relation; adjust as needed)
-        $auditLog = AuditLog::where('auditable_type', Policy::class)
-            ->where('auditable_id', $id)
+        $auditLog = AuditLog::where('table_name', 'policies')
+            ->where('record_id', $id)
             ->orderBy('created_at', 'desc')
             ->get(); // If no AuditLog model, set to [] or implement query
 

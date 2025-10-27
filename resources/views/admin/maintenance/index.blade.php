@@ -19,7 +19,8 @@
             <!-- Maintenance Mode Settings -->
             <div class="bg-white rounded-lg shadow p-6 mb-8">
                 <h2 class="text-lg font-medium text-gray-900 mb-4">Maintenance Mode</h2>
-                <form action="{{ route('admin.maintenance.update') }}" method="POST">
+                {{-- {{ route('admin.maintenance.update') }}  --}}
+                <form action="#" method="POST">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

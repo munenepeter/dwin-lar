@@ -310,6 +310,20 @@ INSERT INTO policy_types (type_name, type_code, description) VALUES
 ('Marine Insurance', 'MARINE', 'Marine insurance policies'),
 ('Travel Insurance', 'TRAVEL', 'Travel and vacation insurance');
 
+
+INSERT INTO insurance_companies (company_name, company_code, contact_person, email, phone, city, postal_code, country, website, is_active, created_at, updated_at) VALUES
+('APA Insurance', 'APA001', 'John Mwangi', 'contact@apainsurance.co.ke', '+254700111222', 'Nairobi', '00100', 'Kenya', 'https://apainsurance.co.ke', 1, NOW(), NOW()),
+('Old Mutual Kenya', 'OMK002', 'Grace Wanjiru', 'info@oldmutual.co.ke', '+254700333444', 'Nairobi', '00101', 'Kenya', 'https://oldmutual.co.ke', 1, NOW(), NOW()),
+('CIC Insurance Group', 'CIC003', 'Michael Otieno', 'support@cic.co.ke', '+254700555666', 'Nairobi', '00102', 'Kenya', 'https://cic.co.ke', 1, NOW(), NOW()),
+('GA Insurance', 'GA004', 'Alice Njeri', 'contact@ga.co.ke', '+254700777888', 'Nairobi', '00103', 'Kenya', 'https://ga.co.ke', 1, NOW(), NOW()),
+('Britam Insurance', 'BRIT005', 'David Kimani', 'info@britam.co.ke', '+254700999000', 'Nairobi', '00104', 'Kenya', 'https://britam.co.ke', 1, NOW(), NOW()),
+('Jubilee Insurance', 'JUB006', 'Mary Achieng', 'help@jubilee.co.ke', '+254701111222', 'Nairobi', '00105', 'Kenya', 'https://jubilee.co.ke', 1, NOW(), NOW()),
+('AAR Insurance', 'AAR007', 'Paul Omondi', 'contact@aar.co.ke', '+254701333444', 'Nairobi', '00106', 'Kenya', 'https://aar.co.ke', 1, NOW(), NOW()),
+('ICEA Lion', 'ICEA008', 'Catherine Wambui', 'info@icealion.co.ke', '+254701555666', 'Nairobi', '00107', 'Kenya', 'https://icealion.co.ke', 1, NOW(), NOW()),
+('Madison Insurance', 'MAD009', 'Samuel Kariuki', 'support@madison.co.ke', '+254701777888', 'Nairobi', '00108', 'Kenya', 'https://madison.co.ke', 1, NOW(), NOW()),
+('Heritage Insurance', 'HER010', 'Esther Mwende', 'info@heritage.co.ke', '+254701999000', 'Nairobi', '00109', 'Kenya', 'https://heritage.co.ke', 1, NOW(), NOW());
+
+
 INSERT INTO commission_structures (
  company_id, policy_type_id, structure_name, commission_type,
  base_percentage, fixed_amount, tier_structure,
@@ -372,7 +386,36 @@ NULL, NULL,
  0, NULL, CURDATE(), NULL, TRUE
 );
 
+INSERT INTO commission_structures (company_id, policy_type_id, structure_name, commission_type, base_percentage, fixed_amount, tier_structure, minimum_premium, maximum_premium, effective_date, expiry_date, is_active, created_at, updated_at) VALUES
+(1, 3, 'Standard Commission', 'FLAT_PERCENTAGE', 7.5, NULL, NULL, 1000, 500000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(1, 5, 'Premium Commission', 'TIERED', NULL, NULL, '[{"min":0,"max":50000,"percentage":5},{"min":50001,"max":200000,"percentage":8},{"min":200001,"max":null,"percentage":10}]', 500, NULL, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
 
+(2, 2, 'Standard Commission', 'FLAT_PERCENTAGE', 6.0, NULL, NULL, 1200, 400000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(2, 7, 'Fixed Amount Commission', 'FIXED_AMOUNT', NULL, 3500, NULL, 1500, 600000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(3, 1, 'Standard Commission', 'FLAT_PERCENTAGE', 8.0, NULL, NULL, 800, 450000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(3, 6, 'Tiered Commission', 'TIERED', NULL, NULL, '[{"min":0,"max":75000,"percentage":6},{"min":75001,"max":150000,"percentage":9},{"min":150001,"max":null,"percentage":11}]', 750, NULL, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(4, 4, 'Standard Commission', 'FLAT_PERCENTAGE', 7.0, NULL, NULL, 1000, 550000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(4, 8, 'Fixed Amount Commission', 'FIXED_AMOUNT', NULL, 4000, NULL, 2000, 700000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(5, 3, 'Standard Commission', 'FLAT_PERCENTAGE', 7.8, NULL, NULL, 900, 480000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(5, 3, 'Tiered Commission', 'TIERED', NULL, NULL, '[{"min":0,"max":60000,"percentage":5.5},{"min":60001,"max":180000,"percentage":8.5},{"min":180001,"max":null,"percentage":10.5}]', 600, NULL, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(6, 2, 'Standard Commission', 'FLAT_PERCENTAGE', 6.5, NULL, NULL, 1100, 520000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(6, 1, 'Fixed Amount Commission', 'FIXED_AMOUNT', NULL, 3200, NULL, 1000, 450000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(7, 9, 'Standard Commission', 'FLAT_PERCENTAGE', 7.2, NULL, NULL, 1300, 440000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(7, 4, 'Tiered Commission', 'TIERED', NULL, NULL, '[{"min":0,"max":40000,"percentage":5},{"min":40001,"max":120000,"percentage":7.5},{"min":120001,"max":null,"percentage":9.5}]', 400, NULL, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(8, 4, 'Standard Commission', 'FLAT_PERCENTAGE', 6.8, NULL, NULL, 950, 460000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(8, 7, 'Fixed Amount Commission', 'FIXED_AMOUNT', NULL, 2900, NULL, 850, 410000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(9, 6, 'Standard Commission', 'FLAT_PERCENTAGE', 7.7, NULL, NULL, 1050, 490000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(9, 8, 'Tiered Commission', 'TIERED', NULL, NULL, '[{"min":0,"max":50000,"percentage":6},{"min":50001,"max":150000,"percentage":9},{"min":150001,"max":null,"percentage":11}]', 500, NULL, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+
+(10, 5, 'Standard Commission', 'FLAT_PERCENTAGE', 7.3, NULL, NULL, 1000, 500000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW()),
+(10, 2, 'Fixed Amount Commission', 'FIXED_AMOUNT', NULL, 3600, NULL, 1200, 550000, DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND() * 365) DAY), NULL, 1, NOW(), NOW());
 
 INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_system_setting) VALUES
 ('company_name', 'Dwin Insurance Agency', 'STRING', 'Company name', TRUE),
