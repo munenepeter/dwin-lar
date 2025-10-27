@@ -8,18 +8,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class PolicyRenewal extends Model {
     use HasFactory;
 
-    protected $fillable = ['client_id', 'document_type', 'document_name', 'file_path', 'file_size', 'mime_type', 'uploaded_by', 'is_verified', 'verified_by', 'verified_at'];
-    protected $casts = ['is_verified' => 'boolean', 'verified_at' => 'datetime'];
+ protected $fillable = [
+ 'original_policy_id',
+ 'new_policy_id',
+ 'renewal_date',
+ 'old_premium_amount',
+ 'new_premium_amount',
+ 'renewal_status',
+ 'agent_id',
+ 'notes',
+ ];
 
-    public function client() {
-        return $this->belongsTo(Client::class);
-    }
+ public function originalPolicy() {
+ return $this->belongsTo(Policy::class, 'original_policy_id');
+ }
 
-    public function uploadedBy() {
-        return $this->belongsTo(User::class, 'uploaded_by');
-    }
-
-    public function verifiedBy() {
-        return $this->belongsTo(User::class, 'verified_by');
+ public function newPolicy() {
+ return $this->belongsTo(Policy::class, 'new_policy_id');
+ }
+ public function agent() {
+ return $this->belongsTo(User::class, 'agent_id');
+ }
     }
 }

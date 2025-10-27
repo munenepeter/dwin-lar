@@ -133,6 +133,60 @@ BEGIN
 END//
 DELIMITER ;
 
+-- Dumping structure for procedure dwin.FlagPoliciesForRenewal
+DELIMITER //
+CREATE PROCEDURE `FlagPoliciesForRenewal`()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_policy_id BIGINT;
+    DECLARE v_client_name VARCHAR(101);
+    DECLARE v_policy_number VARCHAR(50);
+    DECLARE v_expiry_date DATE;
+    DECLARE v_agent_id BIGINT;
+    DECLARE v_days_to_expiry INT;
+
+    -- Define the renewal window (e.g., 30 days before expiry)
+    DECLARE renewal_window_days INT DEFAULT 30; 
+
+    DECLARE policy_cursor CURSOR FOR
+        SELECT 
+            p.id, 
+            c.full_name, 
+            p.policy_number, 
+            p.expiry_date, 
+            p.agent_id, 
+            DATEDIFF(p.expiry_date, CURDATE()) AS days_to_expiry
+        FROM policies p
+        JOIN clients c ON p.client_id = c.id
+        WHERE p.policy_status = 'ACTIVE'
+          AND DATEDIFF(p.expiry_date, CURDATE()) BETWEEN 1 AND renewal_window_days
+          AND p.renewal_notice_sent = FALSE; -- Ensure notice hasn't been sent yet
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN policy_cursor;
+
+    policy_loop: LOOP
+        FETCH policy_cursor INTO v_policy_id, v_client_name, v_policy_number, v_expiry_date, v_agent_id, v_days_to_expiry;
+
+        IF done THEN
+            LEAVE policy_loop;
+        END IF;
+
+        -- Flag the policy for renewal notice sent
+        UPDATE policies 
+        SET renewal_notice_sent = TRUE, renewal_notice_date = NOW()
+        WHERE id = v_policy_id;
+
+        -- Log the action in audit_log (assuming @audit_user_id is set by the application context)
+        INSERT INTO audit_log (table_name, record_id, action_type, new_values, user_id, ip_address)
+        VALUES ('policies', v_policy_id, 'UPDATE', JSON_OBJECT('renewal_notice_sent', TRUE, 'renewal_notice_date', NOW()), COALESCE(@audit_user_id, 0), COALESCE(@audit_ip_address, '127.0.0.1'));
+
+    END LOOP;
+    CLOSE policy_cursor;
+END//
+DELIMITER ;
+
 -- Dumping structure for procedure dwin.CalculateDailyMetrics
 DELIMITER //
 CREATE PROCEDURE `CalculateDailyMetrics`(IN p_date DATE)
@@ -417,6 +471,11 @@ DELIMITER ;
 
 -- Dumping structure for event dwin.daily_renewal_reminders
 DELIMITER //
+CREATE EVENT `daily_policy_renewal_flagging`
+    ON SCHEDULE EVERY 1 DAY
+    STARTS '2025-10-17 00:00:00' -- Adjust the start time as needed
+    ON COMPLETION NOT PRESERVE ENABLE
+    DO CALL FlagPoliciesForRenewal()//
 CREATE EVENT `daily_renewal_reminders` ON SCHEDULE EVERY 1 DAY STARTS '2025-10-16 09:00:00' ON COMPLETION NOT PRESERVE ENABLE DO CALL SendRenewalReminders()//
 DELIMITER ;
 
