@@ -10,7 +10,7 @@ use App\Http\Requests\UpdateClientRequest;
 
 class ClientController extends Controller {
     public function index(Request $request) {
-        $perPage = 15;
+        $perPage = 5;
         $search = $request->get('search', '');
         $status = $request->get('status', '');
         $kyc_status = $request->get('kyc_status', '');

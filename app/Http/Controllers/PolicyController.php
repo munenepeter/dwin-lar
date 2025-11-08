@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Client;
 use App\Models\Policy;
+use App\Models\AuditLog;
+use App\Models\PolicyType;
+use App\Models\Notification;
+use Illuminate\Http\Request;
+use App\Models\PolicyRenewal;
+use App\Mail\RenewalPolicyEmail;
+use App\Models\InsuranceCompany;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\StorePolicyRequest;
 use App\Http\Requests\UpdatePolicyRequest;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use App\Models\Client;
-use App\Models\InsuranceCompany;
-use App\Models\PolicyType;
-use App\Models\User;
-use App\Models\PolicyRenewal;
-use App\Models\Notification;
-use Illuminate\Support\Facades\Mail;
-use App\Models\AuditLog;
 
 class PolicyController extends Controller {
     public function index(Request $request) {
@@ -23,32 +25,57 @@ class PolicyController extends Controller {
     }
 
     public function create() {
-        $clients = Client::all();
-        $companies = InsuranceCompany::all();
-        $policyTypes = PolicyType::all();
-        $agents = User::whereHas('role', fn($q) => $q->where('role_name', 'Agent'))->get();
-        $policy = null; // For create
-        return view('policies.forms._policy_form', compact('clients', 'companies', 'policyTypes', 'agents', 'policy'));
+        $clients      = Client::all();
+        $companies    = InsuranceCompany::all();
+        $agents       = User::whereHas('role', fn($q) => $q->where('role_name', 'Agent'))->get();
+
+        $policyTypes  = collect();
+
+        return view('policies.forms._policy_form', compact(
+            'clients',
+            'companies',
+            'policyTypes',
+            'agents'
+        ));
+    }
+
+    public function policyTypesByCompany($company_id) {
+        $types = PolicyType::whereHas('commissionStructures', function ($q) use ($company_id) {
+            $q->where('company_id', $company_id)
+                ->where('is_active', true)
+                ->where('effective_date', '<=', now())
+                ->where(function ($qq) {
+                    $qq->whereNull('expiry_date')
+                        ->orWhere('expiry_date', '>=', now());
+                });
+        })->get(['id', 'type_name']);
+
+        return response()->json($types);
     }
 
     public function store(StorePolicyRequest $request) {
 
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        $typeCode = PolicyType::find($request->policy_type_id)->type_code;
+            $typeCode = PolicyType::find($request->policy_type_id)->type_code;
 
-        $data['policy_number']  = $this->generatePolicyNumber($typeCode);
+            $data['policy_number']  = $this->generatePolicyNumber($typeCode);
 
-        $policy = Policy::create($data);
+            $policy = Policy::create($data);
 
-        if (!$policy) {
+            if (!$policy) {
+                return redirect()->route('policies.index')->with('error', 'Failed to create policy.');
+            }
+
+            DB::statement('CALL CalculateCommission(?, @p_commission_amount, @p_calculation_id)', [$policy->id]);
+            $out = DB::select('SELECT @p_commission_amount as commission_amount, @p_calculation_id as calculation_id')[0];
+
+            return redirect()->route('policies.index')->with('success', "Policy created. Commission: {$out->commission_amount}");
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
             return redirect()->route('policies.index')->with('error', 'Failed to create policy.');
         }
-
-        DB::statement('CALL CalculateCommission(?, @p_commission_amount, @p_calculation_id)', [$policy->id]);
-        $out = DB::select('SELECT @p_commission_amount as commission_amount, @p_calculation_id as calculation_id')[0];
-
-        return redirect()->route('policies.index')->with('success', "Policy created. Commission: {$out->commission_amount}");
     }
 
 
@@ -75,18 +102,35 @@ class PolicyController extends Controller {
         $auditLog = AuditLog::where('table_name', 'policies')
             ->where('record_id', $id)
             ->orderBy('created_at', 'desc')
-            ->get(); // If no AuditLog model, set to [] or implement query
+            ->get();
 
         return view('policies.forms._policy_details', compact('policy', 'auditLog'));
     }
 
     public function edit($id) {
-        $policy = Policy::findOrFail($id);
-        $clients = Client::all();
-        $companies = InsuranceCompany::all();
-        $policyTypes = PolicyType::all();
-        $agents = User::whereHas('role', fn($q) => $q->where('role_name', 'Agent'))->get();
-        return view('policies.forms._policy_form', compact('clients', 'companies', 'policyTypes', 'agents', 'policy'));
+        $policy       = Policy::findOrFail($id);
+        $clients      = Client::all();
+        $companies    = InsuranceCompany::all();
+        $agents       = User::whereHas('role', fn($q) => $q->where('role_name', 'Agent'))->get();
+
+        // Load the policy-types that have a commission structure for the current company
+        $policyTypes  = PolicyType::whereHas('commissionStructures', function ($q) use ($policy) {
+            $q->where('company_id', $policy->company_id)
+                ->where('is_active', true)
+                ->where('effective_date', '<=', now())
+                ->where(function ($qq) {
+                    $qq->whereNull('expiry_date')
+                        ->orWhere('expiry_date', '>=', now());
+                });
+        })->get();
+
+        return view('policies.forms._policy_form', compact(
+            'policy',
+            'clients',
+            'companies',
+            'policyTypes',
+            'agents'
+        ));
     }
 
     public function update(UpdatePolicyRequest $request, $id) {
@@ -114,8 +158,7 @@ class PolicyController extends Controller {
         return redirect()->route('policies.index')->with('success', 'Expired policies updated.');
     }
 
-    public function renew(Request $request, Policy $originalPolicy)
-    {
+    public function renew(Request $request, Policy $originalPolicy) {
         $request->validate([
             'new_premium_amount' => 'required|numeric|min:0',
             'renewal_date' => 'required|date',
@@ -165,15 +208,13 @@ class PolicyController extends Controller {
             DB::commit();
 
             return redirect()->route('policies.index')->with('success', 'Policy renewed successfully.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Failed to renew policy: ' . $e->getMessage());
         }
     }
 
-    private function sendRenewalNotifications(PolicyRenewal $policyRenewal, Policy $newPolicy)
-    {
+    private function sendRenewalNotifications(PolicyRenewal $policyRenewal, Policy $newPolicy) {
         // Create internal notification
         Notification::createRenewalNotification($policyRenewal);
 

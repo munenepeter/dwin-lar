@@ -239,9 +239,9 @@
                             setActive(target);
                         })
                         .catch(err => {
-                            console.error(err);
                             panel.innerHTML =
-                                `<div class="text-center p-8 text-red-500">Error loading content</div>`;
+                                `<div class="text-center p-8 text-red-600">Error loading content</div>`;
+                            console.error('Error loading tab content:', err);
                         });
                 });
             });

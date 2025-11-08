@@ -85,7 +85,7 @@
                     </div>
                     <div class="flex justify-between items-center py-3 border-b border-gray-100">
                         <span class="text-sm font-medium text-gray-600">Environment</span>
-                        <span class="text-sm font-semibold text-gray-900 px-2 py-1 bg-green-100 text-green-800 rounded">{{ config('app.env') }}</span>
+                        <span class="text-sm font-semibold px-2 py-1 bg-green-100 text-green-800 rounded">{{ config('app.env') }}</span>
                     </div>
                     <div class="flex justify-between items-center py-3 border-b border-gray-100">
                         <span class="text-sm font-medium text-gray-600">Debug Mode</span>

@@ -36,8 +36,9 @@
                                     </td>
                                 @endforeach
                                 <td class="p-4 align-middle">
-                                    <button class="edit-role-perms inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800"
-                                            data-role-id="{{ $role->id }}">
+                                    <button
+                                        class="edit-role-perms inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-800"
+                                        data-role-id="{{ $role->id }}">
                                         Edit Permissions
                                     </button>
                                 </td>
@@ -54,7 +55,8 @@
                 <ul class="space-y-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     @foreach ($permissions as $key => $desc)
                         <li class="flex items-center space-x-2">
-                            <span class="font-mono bg-gray-200 px-2 py-1 rounded text-sm mr-3">{{ $key }}</span>
+                            <span
+                                class="font-mono bg-gray-200 px-2 py-1 rounded text-sm mr-3">{{ $key }}</span>
                             <span class="text-xs">{{ $desc }}</span>
                         </li>
                     @endforeach
@@ -65,8 +67,7 @@
 </div>
 
 {{-- ==================== PERMISSIONS DIALOG ==================== --}}
-<dialog id="permsDialog"
-        class="fixed inset-0 z-50 w-full max-w-md mx-auto my-8 p-6 bg-white rounded-lg shadow-lg">
+<dialog id="permsDialog" class="fixed inset-0 z-50 w-full max-w-md mx-auto my-8 p-6 bg-white rounded-lg shadow-lg">
     <div class="relative">
         <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-500 close-dialog">
             <x-lucide-x class="h-6 w-6" />
@@ -89,8 +90,9 @@
                     <div class="space-y-3">
                         @foreach ($permissions as $key => $desc)
                             <div class="flex items-center">
-                                <input id="perm-edit-{{ $key }}" name="permissions[]" type="checkbox" value="{{ $key }}"
-                                       class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <input id="perm-edit-{{ $key }}" name="permissions[]" type="checkbox"
+                                    value="{{ $key }}"
+                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <label for="perm-edit-{{ $key }}" class="ml-3 text-sm text-gray-700">
                                     <span class="font-medium">{{ $key }}</span>
                                     <span class="block text-xs text-gray-500">{{ $desc }}</span>
@@ -102,11 +104,12 @@
             </div>
 
             <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" class="close-dialog inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                <button type="button"
+                    class="close-dialog inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
                     Cancel
                 </button>
                 <button type="submit"
-                        class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
+                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
                     Save Permissions
                 </button>
             </div>
@@ -116,21 +119,26 @@
 @php
     $rolePermissions = json_decode($rolePermissions);
 @endphp
+
 <script>
+    /* eslint-disable */
+    /* @ts-nocheck */
     const permsDialog = document.getElementById('permsDialog');
-    const permsForm   = document.getElementById('permsForm');
+    const permsForm = document.getElementById('permsForm');
 
     document.querySelectorAll('.edit-role-perms').forEach(btn => {
         btn.addEventListener('click', () => {
             const roleId = btn.dataset.roleId;
             // eslint-disable-next-line
+            // @ts-ignore
             const role = @json($rolePermissions).find(r => r.id == roleId);
 
             document.getElementById('permsRoleId').value = role.id;
             document.getElementById('permsRoleName').textContent = 'Role: ' + role.role_name;
             document.getElementById('permsRoleDesc').textContent = role.description || 'No description';
 
-            document.querySelectorAll('#permsForm [name="permissions[]"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('#permsForm [name="permissions[]"]').forEach(cb => cb.checked =
+                false);
             (JSON.parse(role.permissions || '[]')).forEach(p => {
                 const cb = document.querySelector(`#permsForm [value="${p}"]`);
                 if (cb) cb.checked = true;
@@ -151,15 +159,22 @@
         try {
             const res = await fetch('/admin/users/update-role-permissions', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (data.success) location.reload();
             else alert(data.message || 'Error');
-        } catch (e) { alert('Save failed'); }
+        } catch (e) {
+            alert('Save failed');
+        }
     });
 
     document.querySelectorAll('.close-dialog').forEach(b => b.addEventListener('click', () => permsDialog.close()));
-    permsDialog.addEventListener('click', e => { if (e.target === permsDialog) permsDialog.close(); });
+    permsDialog.addEventListener('click', e => {
+        if (e.target === permsDialog) permsDialog.close();
+    });
 </script>

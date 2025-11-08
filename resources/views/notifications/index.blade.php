@@ -1,9 +1,4 @@
-<?php
-// notifications.php - Main notifications listing page
 
-// Assumes header.php includes necessary HTML structure, title, and Tailwind CSS setup
-include_once 'views/admin/partials/header.php';
-?>
 
 <main class="flex-1 bg-gray-50 p-4 shadow-xs rounded-md overflow-hidden">
     <div class="space-y-6">
@@ -364,7 +359,6 @@ include_once 'views/admin/partials/header.php';
     </dialog>
 </main>
 
-<?php include_once 'views/admin/partials/footer.php'; ?>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {

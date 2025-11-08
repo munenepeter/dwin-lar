@@ -6,14 +6,31 @@
                     <h1 class="text-3xl font-bold tracking-tight">Expiring Policies Report</h1>
                     <p class="text-muted-foreground">A report of policies expiring within a specified number of days.</p>
                 </div>
-                <button id="downloadReport" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-blue-500 hover:bg-blue-600 text-white h-10 px-4 py-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download mr-2 h-4 w-4">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" x2="12" y1="15" y2="3"></line>
-                    </svg>
-                    Download Report
-                </button>
+                <div class="space-x-2">
+                    <button id="downloadCsv" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-blue-500 hover:bg-blue-600 text-white h-10 px-4 py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download mr-2 h-4 w-4">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" x2="12" y1="15" y2="3"></line>
+                        </svg>
+                        Download CSV
+                    </button>
+                    <button id="downloadPdf" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-green-500 hover:bg-green-600 text-white h-10 px-4 py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download mr-2 h-4 w-4">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" x2="12" y1="15" y2="3"></line>
+                        </svg>
+                        Download PDF
+                    </button>
+                    <button id="sendEmail" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-purple-500 hover:bg-purple-600 text-white h-10 px-4 py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail mr-2 h-4 w-4">
+                            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                        </svg>
+                        Send via Email
+                    </button>
+                </div>
             </div>
 
             <div class="rounded-lg border border-gray-300 bg-white shadow-sm p-6">
@@ -72,7 +89,7 @@
     </main>
 
     <script>
-        document.getElementById('downloadReport').addEventListener('click', function() {
+        document.getElementById('downloadCsv').addEventListener('click', function() {
             const table = document.getElementById('expiring-policies-table');
             if (!table) return;
             const rows = table.querySelectorAll('tr');
@@ -93,6 +110,39 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        });
+
+        document.getElementById('downloadPdf').addEventListener('click', function() {
+            let url = new URL(window.location.href);
+            url.searchParams.set('format', 'pdf');
+            const link = document.createElement('a');
+            link.href = url.toString();
+            link.download = 'expiring-policies-report.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        document.getElementById('sendEmail').addEventListener('click', function() {
+            const to = prompt('Enter the recipient email address:');
+            if (to) {
+                let url = new URL(window.location.href);
+                url.searchParams.set('action', 'email');
+                url.searchParams.set('to', to);
+                fetch(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    alert('Error sending email: ' + error);
+                });
+            }
         });
     </script>
 </x-layouts.app>

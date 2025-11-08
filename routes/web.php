@@ -94,6 +94,8 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
     // Policies 
     Route::resource('policies', PolicyController::class);
+    Route::get('policy-types/by-company/{company_id}', [PolicyController::class, 'policyTypesByCompany'])
+     ->name('policy-types.by-company');
 
     // Policy Renewals (nested under policies) 
     Route::resource('policies.renewals', PolicyRenewalController::class)->shallow();
