@@ -1,1 +1,181 @@
-<?php\n\nnamespace Tests\\Feature;\n\nuse App\\Models\\User;\nuse App\\Models\\Client;\nuse App\\Models\\Policy;\nuse App\\Models\\AuditLog;\nuse App\\Models\\PolicyType;\nuse App\\Models\\PolicyRenewal;\nuse App\\Mail\\RenewalPolicyEmail;\nuse App\\Models\\InsuranceCompany;\nuse Illuminate\Support\\Facades\\DB;\nuse Illuminate\\Support\\Facades\\Mail;\nuse Illuminate\\Foundation\\Testing\\RefreshDatabase;\nuse Tests\\TestCase;\n\n/**\n * @covers \\App\\Http\\Controllers\\PolicyController\n */\nclass PolicyControllerTest extends TestCase\n{\n    use RefreshDatabase;\n\n    private User $user;\n\n    protected function setUp(): void\n    {\n        parent::setUp();\n        $this->user = User::factory()->create();\n        $this->actingAs($this->user);\n        \n        // The stored procedures are not available in sqlite, so we need to create them for testing\n        DB::unprepared(\'DROP PROCEDURE IF EXISTS CalculateCommission\');\n        DB::unprepared(\'CREATE PROCEDURE CalculateCommission(IN p_policy_id INT, OUT p_commission_amount DECIMAL(10, 2), OUT p_calculation_id INT)\n        BEGIN\n            -- Implementation of the procedure is not needed for this test, as we are only testing the controller\n            SET p_commission_amount = 100.00;\n            SET p_calculation_id = 1;\n        END\');\n        DB::unprepared(\'DROP PROCEDURE IF EXISTS GetExpiringPoliciesReport\');\n        DB::unprepared(\'CREATE PROCEDURE GetExpiringPoliciesReport(IN p_days INT)\n        BEGIN\n            SELECT COUNT(*) as count FROM policies WHERE DATEDIFF(expiry_date, NOW()) BETWEEN 0 AND p_days;\n        END\');\n        DB::unprepared(\'DROP PROCEDURE IF EXISTS UpdateExpiredPolicies\');\n        DB::unprepared(\'CREATE PROCEDURE UpdateExpiredPolicies()\n        BEGIN\n            UPDATE policies SET policy_status = \\\'EXPIRED\\\' WHERE expiry_date < NOW();\n        END\');\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_display_the_policies_index_page()\n    {\n        Policy::factory()->count(5)->create();\n        $response = $this->get(route(\'policies.index\'));\n\n        $response->assertOk();\n        $response->assertViewIs(\'policies.index\');\n        $this->assertCount(5, $response->viewData(\'policies\'));\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_display_the_create_policy_form()\n    {\n        $response = $this->get(route(\'policies.create\'));\n\n        $response->assertOk();\n        $response->assertViewIs(\'policies.forms._policy_form\');\n    }\n    \n    /**\n     * @test\n     */\n    public function it_can_get_policy_types_by_company()\n    {\n        $company = InsuranceCompany::factory()->create();\n        $policyType = PolicyType::factory()->create();\n        $company->commissionStructures()->create([\n            \'policy_type_id\' => $policyType->id,\n            \'commission_rate\' => 0.10,\n            \'effective_date\' => now(),\n        ]);\n\n        $response = $this->getJson(route(\'policies.policy-types-by-company\', $company->id));\n\n        $response->assertOk();\n        $response->assertJson([[\'id\' => $policyType->id, \'type_name\' => $policyType->type_name]]);\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_store_a_new_policy()\n    {\n        $client = Client::factory()->create();\n        $company = InsuranceCompany::factory()->create();\n        $policyType = PolicyType::factory()->create([\'type_code\' => \'TEST\']);\n        $agent = User::factory()->create();\n\n        $policyData = Policy::factory()->make([\n            \'client_id\' => $client->id,\n            \'company_id\' => $company->id,\n            \'policy_type_id\' => $policyType->id,\n            \'agent_id\' => $agent->id,\n        ])->toArray();\n\n        $response = $this->post(route(\'policies.store\'), $policyData);\n\n        $response->assertRedirect(route(\'policies.index\'));\n        $this->assertDatabaseHas(\'policies\', [\'client_id\' => $client->id]);\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_display_a_single_policy()\n    {\n        $policy = Policy::factory()->create();\n        AuditLog::factory()->create([\n            \'table_name\' => \'policies\',\n            \'record_id\' => $policy->id,\n        ]);\n\n        $response = $this->get(route(\'policies.show\', $policy->id));\n\n        $response->assertOk();\n        $response->assertViewIs(\'policies.forms._policy_details\');\n        $response->assertSee($policy->policy_number);\n        $this->assertCount(1, $response->viewData(\'auditLog\'));\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_display_the_edit_policy_form()\n    {\n        $policy = Policy::factory()->create();\n        $response = $this->get(route(\'policies.edit\', $policy->id));\n\n        $response->assertOk();\n        $response->assertViewIs(\'policies.forms._policy_form\');\n        $response->assertSee($policy->policy_number);\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_update_a_policy()\n    {\n        $policy = Policy::factory()->create();\n        $updateData = Policy::factory()->make()->toArray();\n\n        $response = $this->put(route(\'policies.update\', $policy->id), $updateData);\n\n        $response->assertRedirect(route(\'policies.index\'));\n        $this->assertDatabaseHas(\'policies\', [\'id\' => $policy->id, \'policy_number\' => $updateData[\'policy_number\']]);\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_delete_a_policy()\n    {\n        $policy = Policy::factory()->create();\n        $response = $this->delete(route(\'policies.destroy\', $policy->id));\n\n        $response->assertRedirect(route(\'policies.index\'));\n        $this->assertDatabaseMissing(\'policies\', [\'id\' => $policy->id]);\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_display_the_expiring_report()\n    {\n        $response = $this->get(route(\'policies.expiring-report\', [\'days\' => 60]));\n\n        $response->assertOk();\n        $response->assertViewIs(\'policies.expiring-report\');\n        $response->assertViewHas(\'days\', 60);\n    }\n\n    /**\n     * @test\n     */\n    public function it_can_update_expired_policies()\n    {\n        Policy::factory()->create([\'expiry_date\' => now()->subDay(), \'policy_status\' => \'ACTIVE\']);\n        $response = $this->post(route(\'policies.update-expired\'));\n\n        $response->assertRedirect(route(\'policies.index\'));\n        $this->assertDatabaseHas(\'policies\', [\'policy_status\' => \'EXPIRED\']);\n    }\n    \n    /**\n     * @test\n     */\n    public function it_can_renew_a_policy()\n    {\n        Mail::fake();\n        $originalPolicy = Policy::factory()->create([\'policy_status\' => \'ACTIVE\']);\n        $agent = User::factory()->create();\n\n        $renewalData = [\n            \'new_premium_amount\' => 1200.00,\n            \'renewal_date\' => now()->format(\'Y-m-d\'),\n            \'agent_id\' => $agent->id,\n        ];\n\n        $response = $this->post(route(\'policies.renew\', $originalPolicy), $renewalData);\n\n        $response->assertRedirect(route(\'policies.index\'));\n        $this->assertDatabaseHas(\'policies\', [\'id\' => $originalPolicy->id, \'policy_status\' => \'EXPIRED\']);\n        $this->assertDatabaseHas(\'policies\', [\'premium_amount\' => 1200.00, \'policy_status\' => \'ACTIVE\']);\n        $this->assertDatabaseHas(\'policy_renewals\', [\'original_policy_id\' => $originalPolicy->id]);\n\n        Mail::assertSent(RenewalPolicyEmail::class);\n    }\n}\n
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Models\Client;
+use App\Models\Policy;
+use App\Models\AuditLog;
+use App\Models\PolicyType;
+use App\Models\InsuranceCompany;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/**
+ * @covers \App\Http\Controllers\PolicyController
+ */
+class PolicyControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
+        
+        // Mock the stored procedures required by the controller/model events for testing purposes.
+        // These are assumed to be present in the MySQL database.
+        DB::unprepared('DROP PROCEDURE IF EXISTS CalculateCommission');
+        DB::unprepared('CREATE PROCEDURE CalculateCommission(IN p_policy_id INT, OUT p_commission_amount DECIMAL(10, 2), OUT p_calculation_id INT)
+        BEGIN
+            -- Mock implementation for testing
+            SET p_commission_amount = 100.00;
+            SET p_calculation_id = 1;
+        END');
+        DB::unprepared('DROP PROCEDURE IF EXISTS UpdateExpiredPolicies');
+        DB::unprepared('CREATE PROCEDURE UpdateExpiredPolicies()
+        BEGIN
+            UPDATE policies SET policy_status = \'EXPIRED\' WHERE expiry_date < NOW();
+        END');
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_display_the_policies_index_page()
+    {
+        Policy::factory()->count(5)->create();
+        $response = $this->get(route('policies.index'));
+
+        $response->assertOk();
+        $response->assertViewIs('policies.index');
+        $this->assertCount(5, $response->viewData('policies'));
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_display_the_create_policy_form()
+    {
+        $response = $this->get(route('policies.create'));
+
+        $response->assertOk();
+        $response->assertViewIs('policies.forms._policy_form');
+    }
+    
+    /**
+     * @test
+     */
+    public function it_can_get_policy_types_by_company()
+    {
+        $company = InsuranceCompany::factory()->create();
+        $policyType = PolicyType::factory()->create();
+        $company->commissionStructures()->create([
+            'policy_type_id' => $policyType->id,
+            'commission_rate' => 0.10,
+            'effective_date' => now(),
+        ]);
+
+        $response = $this->getJson(route('policy-types.by-company', $company->id));
+
+        $response->assertOk();
+        $response->assertJson([['id' => $policyType->id, 'type_name' => $policyType->type_name]]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_store_a_new_policy()
+    {
+        $client = Client::factory()->create();
+        $company = InsuranceCompany::factory()->create();
+        $policyType = PolicyType::factory()->create(['type_code' => 'TEST']);
+        $agent = User::factory()->create();
+
+        $policyData = Policy::factory()->make([
+            'client_id' => $client->id,
+            'company_id' => $company->id,
+            'policy_type_id' => $policyType->id,
+            'agent_id' => $agent->id,
+        ])->toArray();
+
+        $response = $this->post(route('policies.store'), $policyData);
+
+        $response->assertRedirect(route('policies.index'));
+        $this->assertDatabaseHas('policies', ['client_id' => $client->id]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_display_a_single_policy()
+    {
+        $policy = Policy::factory()->create();
+        AuditLog::factory()->create([
+            'table_name' => 'policies',
+            'record_id' => $policy->id,
+        ]);
+
+        $response = $this->get(route('policies.show', $policy->id));
+
+        $response->assertOk();
+        $response->assertViewIs('policies.forms._policy_details');
+        $response->assertSee($policy->policy_number);
+        $this->assertCount(1, $response->viewData('auditLog'));
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_display_the_edit_policy_form()
+    {
+        $policy = Policy::factory()->create();
+        $response = $this->get(route('policies.edit', $policy->id));
+
+        $response->assertOk();
+        $response->assertViewIs('policies.forms._policy_form');
+        $response->assertSee($policy->policy_number);
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_update_a_policy()
+    {
+        $policy = Policy::factory()->create();
+        $updateData = Policy::factory()->make()->toArray();
+
+        $response = $this->put(route('policies.update', $policy->id), $updateData);
+
+        $response->assertRedirect(route('policies.index'));
+        $this->assertDatabaseHas('policies', ['id' => $policy->id, 'policy_number' => $updateData['policy_number']]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_delete_a_policy()
+    {
+        $policy = Policy::factory()->create();
+        $response = $this->delete(route('policies.destroy', $policy->id));
+
+        $response->assertRedirect(route('policies.index'));
+        $this->assertDatabaseMissing('policies', ['id' => $policy->id]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_update_expired_policies()
+    {
+        Policy::factory()->create(['expiry_date' => now()->subDay(), 'policy_status' => 'ACTIVE']);
+        $response = $this->post(route('policies.updateExpired'));
+
+        $response->assertRedirect(route('policies.index'));
+        $this->assertDatabaseHas('policies', ['policy_status' => 'EXPIRED']);
+    }
+}
